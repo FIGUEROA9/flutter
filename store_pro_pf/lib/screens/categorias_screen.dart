@@ -13,7 +13,7 @@ class CategoriasScreen extends StatefulWidget {
 
 class _CategoriasScreenState extends State {
   final CategoriaService _service = CategoriaService();
-  late Future> _futureCategorias;
+  late Future<List<Categoria>> _futureCategorias;  
 
   @override
   void initState() {
@@ -43,7 +43,7 @@ class _CategoriasScreenState extends State {
           )
         ],
       ),
-      body: FutureBuilder>(
+      body: FutureBuilder<List<Categoria>>(
         future: _futureCategorias,
         builder: (context, snapshot) {
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
