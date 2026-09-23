@@ -8,53 +8,79 @@ class ProductoService {
   final String baseUrl = Environment.apiUrl;
   final AuthService _authService = AuthService();
 
-  Future> _getHeaders() async {
+  Future<Map<String, String>> _getHeaders() async {
     final token = await _authService.getToken();
+
     return {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
     };
   }
 
-  Future> getProductos() async {
-    final res = await http.get(Uri.parse('$baseUrl/productos'));
-    if (res.statusCode == 200) {
-      List data = jsonDecode(res.body);
-      return data.map((e) => Producto.fromJson(e)).toList();
-    }
-    throw Exception("Error al cargar productos");
-  }
-
-  Future getProductoPorId(int id) async {
-    final res = await http.get(Uri.parse('$baseUrl/productos/$id'));
-    if (res.statusCode == 200) return Producto.fromJson(jsonDecode(res.body));
-    throw Exception("Producto no encontrado");
-  }
-
-  Future crearProducto(String nombre, double precio, int stock, int categoriaId) async {
+  Future<List<Producto>> getProductos() async {
     final headers = await _getHeaders();
+
+    final res = await http.get(
+      Uri.parse('$baseUrl/productos'),
+      headers: headers,
+    );
+
+    if (res.statusCode == 200) {
+      final List data = jsonDecode(res.body);
+
+      return data
+          .map((e) => Producto.fromJson(e))
+          .toList();
+    }
+
+    throw Exception('Error al cargar productos');
+  }
+
+  Future<Producto> getProductoPorId(int id) async {
+    final headers = await _getHeaders();
+
+    final res = await http.get(
+      Uri.parse('$baseUrl/productos/$id'),
+      headers: headers,
+    );
+
+    if (res.statusCode == 200) {
+      return Producto.fromJson(jsonDecode(res.body));
+    }
+
+    throw Exception('Producto no encontrado');
+  }
+
+  Future<bool> crearProducto(
+    String nombre,
+    double precio,
+    int stock,
+    int categoriaId,
+  ) async {
+    final headers = await _getHeaders();
+
     final res = await http.post(
       Uri.parse('$baseUrl/productos'),
       headers: headers,
-      body: jsonEncode({'nombre': nombre, 'precio': precio, 'stock': stock, 'categoriaId': categoriaId}),
+      body: jsonEncode({
+        'nombre': nombre,
+        'precio': precio,
+        'stock': stock,
+        'categoriaId': categoriaId,
+      }),
     );
+
     return res.statusCode == 201;
   }
 
-  Future actualizarProducto(int id, String nombre, double precio, int stock, int categoriaId) async {
+  Future<bool> cambiarEstado(int id) async {
     final headers = await _getHeaders();
-    final res = await http.put(
-      Uri.parse('$baseUrl/productos/$id'),
-      headers: headers,
-      body: jsonEncode({'nombre': nombre, 'precio': precio, 'stock': stock, 'categoriaId': categoriaId}),
-    );
-    return res.statusCode == 200;
-  }
 
-  Future cambiarEstado(int id) async {
-    final headers = await _getHeaders();
-    final res = await http.patch(Uri.parse('$baseUrl/productos/$id/estado'), headers: headers);
+    final res = await http.patch(
+      Uri.parse('$baseUrl/productos/$id/estado'),
+      headers: headers,
+    );
+
     return res.statusCode == 200;
   }
 }
-                    

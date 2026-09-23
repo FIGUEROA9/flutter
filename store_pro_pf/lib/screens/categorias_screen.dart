@@ -8,12 +8,12 @@ class CategoriasScreen extends StatefulWidget {
   const CategoriasScreen({super.key});
 
   @override
-  State createState() => _CategoriasScreenState();
+  State<CategoriasScreen> createState() => _CategoriasScreenState();
 }
 
-class _CategoriasScreenState extends State {
+class _CategoriasScreenState extends State<CategoriasScreen> {
   final CategoriaService _service = CategoriaService();
-  late Future<List<Categoria>> _futureCategorias;  
+  late Future<List<Categoria>> _futureCategorias;
 
   @override
   void initState() {
@@ -35,25 +35,65 @@ class _CategoriasScreenState extends State {
         actions: [
           IconButton(
             icon: const Icon(Icons.person),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PerfilScreen())),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const PerfilScreen(),
+                ),
+              );
+            },
           ),
           IconButton(
             icon: const Icon(Icons.inventory_2),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductosScreen())),
-          )
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ProductosScreen(),
+                ),
+              );
+            },
+          ),
         ],
       ),
       body: FutureBuilder<List<Categoria>>(
         future: _futureCategorias,
         builder: (context, snapshot) {
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          }
+
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(
+              child: Text('No hay categorías disponibles'),
+            );
+          }
+
           final lista = snapshot.data!;
+
           return ListView.builder(
             itemCount: lista.length,
             itemBuilder: (ctx, i) {
               final cat = lista[i];
+
               return ListTile(
-                title: Text(cat.nombre, style: TextStyle(decoration: cat.estado ? TextDecoration.none : TextDecoration.lineThrough)),
+                title: Text(
+                  cat.nombre,
+                  style: TextStyle(
+                    decoration: cat.estado
+                        ? TextDecoration.none
+                        : TextDecoration.lineThrough,
+                  ),
+                ),
                 subtitle: Text(cat.descripcion),
                 trailing: Switch(
                   value: cat.estado,
@@ -70,4 +110,3 @@ class _CategoriasScreenState extends State {
     );
   }
 }
-                    
